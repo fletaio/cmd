@@ -1,7 +1,9 @@
 SeedNodes = [
 	"testnet_seednode1.fleta.io:31000",
 	"testnet_seednode2.fleta.io:31000",
-	"testnet_seednode3.fleta.io:31000"
+	"testnet_seednode3.fleta.io:31000",
+	"testnet_seednode4.fleta.io:31000",
+	"testnet_seednode5.fleta.io:31000"
 ]
 Port = 31000
 KeyHex = "THIS_IS_A_PRIVATE_KEY_THAT_IS_FORMATTED_WITH_HEX"
