@@ -43,14 +43,14 @@ func main() {
 	}
 
 	ObserverKeyMap := map[common.PublicHash]string{}
-	ObserverKeys := []common.PublicHash{}
+	ObserverKeyBoolMap := map[common.PublicHash]bool{}
 	for k, netAddr := range cfg.ObserverKeyMap {
 		pubhash, err := common.ParsePublicHash(k)
 		if err != nil {
 			panic(err)
 		}
 		ObserverKeyMap[pubhash] = netAddr
-		ObserverKeys = append(ObserverKeys, pubhash)
+		ObserverKeyBoolMap[pubhash] = true
 	}
 
 	GenCoord := common.NewCoordinate(0, 0)
@@ -72,8 +72,8 @@ func main() {
 
 	rd := &reward.TestNetRewarder{}
 	kn, err := kernel.NewKernel(&kernel.Config{
-		ChainCoord:   GenCoord,
-		ObserverKeys: ObserverKeys,
+		ChainCoord:     GenCoord,
+		ObserverKeyMap: ObserverKeyBoolMap,
 	}, ks, rd, GenesisContextData)
 	if err != nil {
 		panic(err)

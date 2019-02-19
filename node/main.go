@@ -31,13 +31,13 @@ func main() {
 		cfg.StoreRoot = "./data"
 	}
 
-	ObserverKeys := []common.PublicHash{}
+	ObserverKeyMap := map[common.PublicHash]bool{}
 	for _, k := range cfg.ObserverKeys {
 		pubhash, err := common.ParsePublicHash(k)
 		if err != nil {
 			panic(err)
 		}
-		ObserverKeys = append(ObserverKeys, pubhash)
+		ObserverKeyMap[pubhash] = true
 	}
 
 	GenCoord := common.NewCoordinate(0, 0)
@@ -59,8 +59,8 @@ func main() {
 
 	rd := &reward.TestNetRewarder{}
 	kn, err := kernel.NewKernel(&kernel.Config{
-		ChainCoord:   GenCoord,
-		ObserverKeys: ObserverKeys,
+		ChainCoord:     GenCoord,
+		ObserverKeyMap: ObserverKeyMap,
 	}, ks, rd, GenesisContextData)
 	if err != nil {
 		panic(err)
