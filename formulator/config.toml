@@ -9,6 +9,7 @@ Port = 31000
 KeyHex = "THIS_IS_A_PRIVATE_KEY_THAT_IS_FORMATTED_WITH_HEX"
 Formulator = "THIS_IS_A_ADDRESS_OF_THE_FORMULATOR"
 StoreRoot = "./formulator"
+ForceRecover = true
 
 [ObserverKeyMap]
 3e5PNobd577YEdjeb59zG6N7BBZbyRKMja2s55QQMQE = "testnet_observer1.fleta.io:37000"

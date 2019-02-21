@@ -28,6 +28,7 @@ type Config struct {
 	ObseverPort    int
 	FormulatorPort int
 	StoreRoot      string
+	ForceRecover   bool
 }
 
 func main() {
@@ -86,8 +87,8 @@ func main() {
 	}()
 
 	var ks *kernel.Store
-	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, false); err != nil {
-		if err != badger.ErrTruncateNeeded {
+	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, cfg.ForceRecover); err != nil {
+		if cfg.ForceRecover || err != badger.ErrTruncateNeeded {
 			panic(err)
 		} else {
 			fmt.Println(err)
