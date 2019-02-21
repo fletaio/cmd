@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/hex"
+	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"git.fleta.io/fleta/core/data"
@@ -15,6 +17,7 @@ import (
 	"git.fleta.io/fleta/framework/peer"
 	"git.fleta.io/fleta/framework/router"
 	"git.fleta.io/fleta/framework/router/evilnode"
+	"github.com/dgraph-io/badger"
 
 	"git.fleta.io/fleta/common"
 )
@@ -69,10 +72,43 @@ func main() {
 		panic(err)
 	}
 
-	ks, err := kernel.NewStore(cfg.StoreRoot+"/kernel", 1, act, tran)
-	if err != nil {
-		panic(err)
+	var closable Closable
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT)
+	go func() {
+		<-sigc
+		if closable != nil {
+			closable.Close()
+		}
+	}()
+
+	var ks *kernel.Store
+	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, false); err != nil {
+		if err != badger.ErrTruncateNeeded {
+			panic(err)
+		} else {
+			fmt.Println(err)
+			fmt.Println("Do you want to recover database(it can be failed)? [y/n]")
+			var answer string
+			fmt.Scanf("%s", &answer)
+			if strings.ToLower(answer) != "y" {
+				os.Exit(1)
+			}
+			// TODO
+		}
+	} else {
+		ks = s
 	}
+	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, true); err != nil {
+		panic(err)
+	} else {
+		ks = s
+	}
+	closable = ks
 
 	rd := &reward.TestNetRewarder{}
 	kn, err := kernel.NewKernel(&kernel.Config{
@@ -82,6 +118,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	closable = kn
 
 	frcfg := &formulator.Config{
 		ChainCoord:     GenCoord,
@@ -104,17 +141,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	sigc := make(chan os.Signal, 1)
-	signal.Notify(sigc,
-		syscall.SIGHUP,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-		syscall.SIGQUIT,
-		syscall.SIGKILL,
-	)
-	go func() {
-		<-sigc
-		fr.Close()
-	}()
+	closable = fr
+
 	fr.Run()
+}
+
+type Closable interface {
+	Close()
 }

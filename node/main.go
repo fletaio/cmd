@@ -102,3 +102,7 @@ func main() {
 	}()
 	nd.Run()
 }
+
+type Closable interface {
+	Close()
+}

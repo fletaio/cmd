@@ -16,6 +16,11 @@ import (
 	_ "git.fleta.io/fleta/solidity"
 )
 
+// consts
+const (
+	BlockchainVersion = 1
+)
+
 func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
 	// transaction_type transaction types
 	const (
