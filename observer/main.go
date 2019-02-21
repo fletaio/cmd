@@ -2,7 +2,10 @@ package main
 
 import (
 	"encoding/hex"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"git.fleta.io/fleta/core/reward"
 	"git.fleta.io/fleta/framework/config"
@@ -88,5 +91,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+		syscall.SIGKILL,
+	)
+	go func() {
+		<-sigc
+		ob.Close()
+	}()
 	ob.Run(":"+strconv.Itoa(cfg.ObseverPort), ":"+strconv.Itoa(cfg.FormulatorPort))
 }

@@ -1,6 +1,10 @@
 package main
 
 import (
+	"os"
+	"os/signal"
+	"syscall"
+
 	"git.fleta.io/fleta/core/node"
 	"git.fleta.io/fleta/core/reward"
 	"git.fleta.io/fleta/framework/config"
@@ -84,5 +88,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+		syscall.SIGKILL,
+	)
+	go func() {
+		<-sigc
+		nd.Close()
+	}()
 	nd.Run()
 }

@@ -2,6 +2,9 @@ package main
 
 import (
 	"encoding/hex"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"git.fleta.io/fleta/core/data"
 	"git.fleta.io/fleta/core/formulator"
@@ -101,5 +104,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc,
+		syscall.SIGHUP,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+		syscall.SIGKILL,
+	)
+	go func() {
+		<-sigc
+		fr.Close()
+	}()
 	fr.Run()
 }
