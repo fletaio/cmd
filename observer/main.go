@@ -94,16 +94,16 @@ func main() {
 			fmt.Println("Do you want to recover database(it can be failed)? [y/n]")
 			var answer string
 			fmt.Scanf("%s", &answer)
-			if strings.ToLower(answer) != "y" {
+			if strings.ToLower(answer) == "y" {
+				if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, true); err != nil {
+					panic(err)
+				} else {
+					ks = s
+				}
+			} else {
 				os.Exit(1)
 			}
-			// TODO
 		}
-	} else {
-		ks = s
-	}
-	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, true); err != nil {
-		panic(err)
 	} else {
 		ks = s
 	}
