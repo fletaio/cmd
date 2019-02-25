@@ -3,11 +3,14 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 
+	"git.fleta.io/fleta/cmd/closer"
+	"git.fleta.io/fleta/core/block"
 	"git.fleta.io/fleta/core/data"
 	"git.fleta.io/fleta/core/formulator"
 	"git.fleta.io/fleta/core/kernel"
@@ -17,6 +20,7 @@ import (
 	"git.fleta.io/fleta/framework/peer"
 	"git.fleta.io/fleta/framework/router"
 	"git.fleta.io/fleta/framework/router/evilnode"
+	"git.fleta.io/fleta/framework/rpc"
 	"github.com/dgraph-io/badger"
 
 	"git.fleta.io/fleta/common"
@@ -73,7 +77,7 @@ func main() {
 		panic(err)
 	}
 
-	var closable Closable
+	cm := closer.NewManager()
 	sigc := make(chan os.Signal, 1)
 	signal.Notify(sigc,
 		syscall.SIGHUP,
@@ -82,9 +86,7 @@ func main() {
 		syscall.SIGQUIT)
 	go func() {
 		<-sigc
-		if closable != nil {
-			closable.Close()
-		}
+		cm.CloseAll()
 	}()
 
 	var ks *kernel.Store
@@ -109,7 +111,7 @@ func main() {
 	} else {
 		ks = s
 	}
-	closable = ks
+	cm.Add("kernel.Store", ks)
 
 	rd := &reward.TestNetRewarder{}
 	kn, err := kernel.NewKernel(&kernel.Config{
@@ -119,7 +121,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	closable = kn
+	cm.RemoveAll()
+	cm.Add("kernel.Kernel", kn)
 
 	frcfg := &formulator.Config{
 		ChainCoord:     GenCoord,
@@ -142,11 +145,81 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	closable = fr
+	cm.RemoveAll()
+	cm.Add("cmd.Formulator", fr)
 
-	fr.Run()
-}
+	go fr.Run()
 
-type Closable interface {
-	Close()
+	rm := rpc.NewManager()
+	cm.RemoveAll()
+	cm.Add("rpc.Manager", rm)
+	cm.Add("cmd.Formulator", fr)
+	kn.AddEventHandler(rm)
+
+	// Chain
+	rm.Add("Version", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		return kn.Provider().Version(), nil
+	})
+	rm.Add("Height", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		return kn.Provider().Height(), nil
+	})
+	rm.Add("LastHash", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		return kn.Provider().LastHash(), nil
+	})
+	rm.Add("Hash", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		if arg.Len() < 1 {
+			return nil, rpc.ErrInvalidArgument
+		}
+		height, err := arg.Uint32(0)
+		if err != nil {
+			return nil, err
+		}
+		h, err := kn.Provider().Hash(height)
+		if err != nil {
+			return nil, err
+		}
+		return h, nil
+	})
+	rm.Add("Header", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		if arg.Len() < 1 {
+			return nil, rpc.ErrInvalidArgument
+		}
+		height, err := arg.Uint32(0)
+		if err != nil {
+			return nil, err
+		}
+		h, err := kn.Provider().Header(height)
+		if err != nil {
+			return nil, err
+		}
+		return h, nil
+	})
+	rm.Add("Block", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
+		if arg.Len() < 1 {
+			return nil, rpc.ErrInvalidArgument
+		}
+		height, err := arg.Uint32(0)
+		if err != nil {
+			return nil, err
+		}
+		cd, err := kn.Provider().Data(height)
+		if err != nil {
+			return nil, err
+		}
+		b := &block.Block{
+			Header: cd.Header.(*block.Header),
+			Body:   cd.Body.(*block.Body),
+		}
+		return b, nil
+	})
+
+	go func() {
+		if err := rm.Run(kn, ":58000"); err != nil {
+			if http.ErrServerClosed != err {
+				panic(err)
+			}
+		}
+	}()
+
+	cm.Wait()
 }
