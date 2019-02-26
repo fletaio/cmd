@@ -88,6 +88,7 @@ func main() {
 		<-sigc
 		cm.CloseAll()
 	}()
+	defer cm.CloseAll()
 
 	var ks *kernel.Store
 	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, cfg.ForceRecover); err != nil {

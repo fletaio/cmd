@@ -9,9 +9,10 @@ type Closer interface {
 
 // Manager handles closers
 type Manager struct {
-	Names   []string
-	Closers []Closer
-	closed  chan struct{}
+	isClosed bool
+	Names    []string
+	Closers  []Closer
+	closed   chan struct{}
 }
 
 // NewManager returns a Manager
@@ -38,11 +39,14 @@ func (cm *Manager) Add(Name string, c Closer) {
 
 // CloseAll closers all closers
 func (cm *Manager) CloseAll() {
-	for i, c := range cm.Closers {
-		log.Println("Close", cm.Names[i])
-		c.Close()
+	if !cm.isClosed {
+		cm.isClosed = true
+		for i, c := range cm.Closers {
+			log.Println("Close", cm.Names[i])
+			c.Close()
+		}
+		cm.closed <- struct{}{}
 	}
-	cm.closed <- struct{}{}
 }
 
 // Wait waits close all
