@@ -10,19 +10,19 @@ import (
 	"strings"
 	"syscall"
 
-	"git.fleta.io/fleta/cmd/closer"
-	"git.fleta.io/fleta/core/block"
-	"git.fleta.io/fleta/core/reward"
-	"git.fleta.io/fleta/framework/config"
-	"git.fleta.io/fleta/framework/rpc"
+	"github.com/fletaio/cmd/closer"
+	"github.com/fletaio/core/block"
+	"github.com/fletaio/core/reward"
+	"github.com/fletaio/framework/config"
+	"github.com/fletaio/framework/rpc"
 	"github.com/dgraph-io/badger"
 
-	"git.fleta.io/fleta/core/data"
-	"git.fleta.io/fleta/core/kernel"
-	"git.fleta.io/fleta/core/key"
-	"git.fleta.io/fleta/core/observer"
+	"github.com/fletaio/core/data"
+	"github.com/fletaio/core/kernel"
+	"github.com/fletaio/core/key"
+	"github.com/fletaio/core/observer"
 
-	"git.fleta.io/fleta/common"
+	"github.com/fletaio/common"
 )
 
 // Config is a configuration for the cmd

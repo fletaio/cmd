@@ -3,17 +3,17 @@ package main
 import (
 	"log"
 
-	"git.fleta.io/fleta/common"
-	"git.fleta.io/fleta/core/account"
-	"git.fleta.io/fleta/core/amount"
-	"git.fleta.io/fleta/core/consensus"
-	"git.fleta.io/fleta/core/data"
-	"git.fleta.io/fleta/core/transaction"
-	"git.fleta.io/fleta/extension/account_def"
+	"github.com/fletaio/common"
+	"github.com/fletaio/core/account"
+	"github.com/fletaio/core/amount"
+	"github.com/fletaio/core/consensus"
+	"github.com/fletaio/core/data"
+	"github.com/fletaio/core/transaction"
+	"github.com/fletaio/extension/account_def"
 
-	_ "git.fleta.io/fleta/extension/account_tx"
-	_ "git.fleta.io/fleta/extension/utxo_tx"
-	_ "git.fleta.io/fleta/solidity"
+	_ "github.com/fletaio/extension/account_tx"
+	_ "github.com/fletaio/extension/utxo_tx"
+	_ "github.com/fletaio/solidity"
 )
 
 // consts
