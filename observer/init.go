@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/fletaio/common"
 	"github.com/fletaio/core/account"
@@ -101,7 +102,7 @@ func initGenesisContextData(act *data.Accounter, tran *data.Transactor) (*data.C
 	ctd := data.NewContextData(loader, nil)
 
 	acg := &accCoordGenerator{}
-	addSingleAccount(loader, ctd, common.MustParsePublicHash("3Zmc4bGPP7TuMYxZZdUhA9kVjukdsE2S8Xpbj4Laovv"), common.NewAddress(acg.Generate(), loader.ChainCoord(), 0), "fleta.io")
+	addSingleAccount(loader, ctd, common.MustParsePublicHash("3Zmc4bGPP7TuMYxZZdUhA9kVjukdsE2S8Xpbj4Laovv"), common.NewAddress(acg.Generate(), 0), "fleta.io")
 	addFormulator(loader, ctd, common.MustParsePublicHash("gDGAcf9V9i8oWLTeayoKC8bdAooNVaFnAeQKy4CsUB"), common.MustParseAddress("3CUsUpvEK"), "fleta.io.fr00001")
 	addFormulator(loader, ctd, common.MustParsePublicHash("4m6XsJbq6EFb5bqhZuKFc99SmF86ymcLcRPwrWyToHQ"), common.MustParseAddress("5PxjxeqTd"), "fleta.io.fr00002")
 	addFormulator(loader, ctd, common.MustParsePublicHash("o1rVoXHFuz5EtwLwCLcrmHpqPdugAnWHEVVMtnCb32"), common.MustParseAddress("7bScSUkgw"), "fleta.io.fr00003")
@@ -137,6 +138,14 @@ func initGenesisContextData(act *data.Accounter, tran *data.Transactor) (*data.C
 	addFormulator(loader, ctd, common.MustParsePublicHash("4wknRQ86rTcN1cQbXZfbCMkqXcS1FsYG8ihAYFhmxF"), common.MustParseAddress("2FXriqGHaF"), "fleta.io.fr00033")
 	addFormulator(loader, ctd, common.MustParsePublicHash("3mT9SNvGscpwmDjHnojnVysd9pXUvg1fenVyiBFYTDs"), common.MustParseAddress("2HjLbK6CoZ"), "fleta.io.fr00034")
 	addFormulator(loader, ctd, common.MustParsePublicHash("24zn1BgQBmMD8dWap9XbBHdZAivDppVhnYxzZ4ftZw4"), common.MustParseAddress("2KvpTnv82s"), "fleta.io.fr00035")
+	addFormulator(loader, ctd, common.MustParsePublicHash("4TKCbNqM68vKmmXiMsjdb7qND8Qy1DCJKvFge7Dhw16"), common.MustParseAddress("2N8JLGk3GB"), "fleta.io.fr00036")
+	for i := 0; i < 36; i++ {
+		acg.Generate()
+	}
+	for i := 0; i < 10000; i++ {
+		addr := common.NewAddress(acg.Generate(), 0)
+		addSingleAccount(loader, ctd, common.MustParsePublicHash("3Zmc4bGPP7TuMYxZZdUhA9kVjukdsE2S8Xpbj4Laovv"), addr, "testaccount"+strconv.Itoa(i))
+	}
 	return ctd, nil
 }
 
@@ -148,11 +157,9 @@ func addSingleAccount(loader data.Loader, ctd *data.ContextData, KeyHash common.
 	acc := a.(*account_def.SingleAccount)
 	acc.Address_ = addr
 	acc.Name_ = name
+	acc.Balance_ = amount.NewCoinAmount(10000000000, 0)
 	acc.KeyHash = KeyHash
 	ctd.CreatedAccountMap[acc.Address_] = acc
-	balance := account.NewBalance()
-	balance.AddBalance(loader.ChainCoord(), amount.NewCoinAmount(10000000000, 0))
-	ctd.AccountBalanceMap[acc.Address_] = balance
 }
 
 func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.PublicHash, addr common.Address, name string) {
@@ -163,6 +170,7 @@ func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.Pub
 	acc := a.(*consensus.FormulationAccount)
 	acc.Address_ = addr
 	acc.Name_ = name
+	acc.Balance_ = amount.NewCoinAmount(0, 0)
 	acc.KeyHash = KeyHash
 	ctd.CreatedAccountMap[acc.Address_] = acc
 }

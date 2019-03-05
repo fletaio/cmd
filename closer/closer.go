@@ -1,6 +1,9 @@
 package closer
 
-import "log"
+import (
+	"log"
+	"sync"
+)
 
 // Closer is Closer inferface
 type Closer interface {
@@ -12,7 +15,7 @@ type Manager struct {
 	isClosed bool
 	Names    []string
 	Closers  []Closer
-	closed   chan struct{}
+	wg       sync.WaitGroup
 }
 
 // NewManager returns a Manager
@@ -20,8 +23,8 @@ func NewManager() *Manager {
 	cm := &Manager{
 		Names:   []string{},
 		Closers: []Closer{},
-		closed:  make(chan struct{}),
 	}
+	cm.wg.Add(1)
 	return cm
 }
 
@@ -45,11 +48,11 @@ func (cm *Manager) CloseAll() {
 			log.Println("Close", cm.Names[i])
 			c.Close()
 		}
-		cm.closed <- struct{}{}
+		cm.wg.Done()
 	}
 }
 
 // Wait waits close all
 func (cm *Manager) Wait() {
-	<-cm.closed
+	cm.wg.Wait()
 }

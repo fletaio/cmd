@@ -31,6 +31,7 @@ type Config struct {
 	KeyHex         string
 	ObseverPort    int
 	FormulatorPort int
+	APIPort        int
 	StoreRoot      string
 	ForceRecover   bool
 }
@@ -115,8 +116,10 @@ func main() {
 
 	rd := &reward.TestNetRewarder{}
 	kn, err := kernel.NewKernel(&kernel.Config{
-		ChainCoord:     GenCoord,
-		ObserverKeyMap: ObserverKeyBoolMap,
+		ChainCoord:              GenCoord,
+		ObserverKeyMap:          ObserverKeyBoolMap,
+		MaxBlocksPerFormulator:  8,
+		MaxTransactionsPerBlock: 5000,
 	}, ks, rd, GenesisContextData)
 	if err != nil {
 		panic(err)
@@ -143,6 +146,14 @@ func main() {
 	cm.Add("rpc.Manager", rm)
 	cm.Add("cmd.Observer", ob)
 	kn.AddEventHandler(rm)
+
+	defer func() {
+		cm.CloseAll()
+		if err := recover(); err != nil {
+			kn.DebugLog("Panic", err)
+			panic(err)
+		}
+	}()
 
 	// Chain
 	rm.Add("Version", func(kn *kernel.Kernel, ID interface{}, arg *rpc.Argument) (interface{}, error) {
@@ -202,7 +213,7 @@ func main() {
 	})
 
 	go func() {
-		if err := rm.Run(kn, ":58000"); err != nil {
+		if err := rm.Run(kn, ":"+strconv.Itoa(cfg.APIPort)); err != nil {
 			if http.ErrServerClosed != err {
 				panic(err)
 			}
