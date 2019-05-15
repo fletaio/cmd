@@ -10,12 +10,12 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/dgraph-io/badger"
 	"github.com/fletaio/cmd/closer"
 	"github.com/fletaio/core/block"
 	"github.com/fletaio/core/reward"
 	"github.com/fletaio/framework/config"
 	"github.com/fletaio/framework/rpc"
-	"github.com/dgraph-io/badger"
 
 	"github.com/fletaio/core/data"
 	"github.com/fletaio/core/kernel"
@@ -68,11 +68,12 @@ func main() {
 	GenCoord := common.NewCoordinate(0, 0)
 	act := data.NewAccounter(GenCoord)
 	tran := data.NewTransactor(GenCoord)
-	if err := initChainComponent(act, tran); err != nil {
+	evt := data.NewEventer(GenCoord)
+	if err := initChainComponent(act, tran, evt); err != nil {
 		panic(err)
 	}
 
-	GenesisContextData, err := initGenesisContextData(act, tran)
+	GenesisContextData, err := initGenesisContextData(act, tran, evt)
 	if err != nil {
 		panic(err)
 	}
@@ -91,7 +92,7 @@ func main() {
 	defer cm.CloseAll()
 
 	var ks *kernel.Store
-	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, cfg.ForceRecover); err != nil {
+	if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, evt, cfg.ForceRecover); err != nil {
 		if cfg.ForceRecover || err != badger.ErrTruncateNeeded {
 			panic(err)
 		} else {
@@ -100,7 +101,7 @@ func main() {
 			var answer string
 			fmt.Scanf("%s", &answer)
 			if strings.ToLower(answer) == "y" {
-				if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, true); err != nil {
+				if s, err := kernel.NewStore(cfg.StoreRoot+"/kernel", BlockchainVersion, act, tran, evt, true); err != nil {
 					panic(err)
 				} else {
 					ks = s

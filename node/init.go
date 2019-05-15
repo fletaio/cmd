@@ -22,7 +22,7 @@ const (
 	BlockchainVersion = 1
 )
 
-func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
+func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) error {
 	// transaction_type transaction types
 	const (
 		// FLETA Transactions
@@ -97,8 +97,8 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor) error {
 	return nil
 }
 
-func initGenesisContextData(act *data.Accounter, tran *data.Transactor) (*data.ContextData, error) {
-	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran)
+func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) (*data.ContextData, error) {
+	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran, evt)
 	ctd := data.NewContextData(loader, nil)
 
 	acg := &accCoordGenerator{}
