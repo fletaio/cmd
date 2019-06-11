@@ -11,18 +11,17 @@ import (
 	"syscall"
 
 	"github.com/dgraph-io/badger"
-	"github.com/fletaio/cmd/closer"
-	"github.com/fletaio/core/block"
-	"github.com/fletaio/core/reward"
-	"github.com/fletaio/framework/config"
-	"github.com/fletaio/framework/rpc"
 
+	"github.com/fletaio/common"
+	"github.com/fletaio/core/block"
 	"github.com/fletaio/core/data"
 	"github.com/fletaio/core/kernel"
 	"github.com/fletaio/core/key"
 	"github.com/fletaio/core/observer"
-
-	"github.com/fletaio/common"
+	"github.com/fletaio/core/reward"
+	"github.com/fletaio/framework/closer"
+	"github.com/fletaio/framework/config"
+	"github.com/fletaio/framework/rpc"
 )
 
 // Config is a configuration for the cmd
