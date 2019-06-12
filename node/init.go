@@ -38,6 +38,8 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Ev
 		// Formulation Transactions
 		CreateFormulationTransctionType = transaction.Type(60)
 		RevokeFormulationTransctionType = transaction.Type(61)
+		StakingTransctionType           = transaction.Type(62)
+		UnstakingTransctionType         = transaction.Type(63)
 		// Solidity Transactions
 		SolidityCreateContractType = transaction.Type(70)
 		SolidityCallContractType   = transaction.Type(71)
@@ -71,6 +73,8 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Ev
 		"fleta.OpenAccount":           &txFee{OpenAccountTransctionType, amount.COIN.MulC(10)},
 		"consensus.CreateFormulation": &txFee{CreateFormulationTransctionType, amount.COIN.DivC(10)},
 		"consensus.RevokeFormulation": &txFee{RevokeFormulationTransctionType, amount.COIN.DivC(10)},
+		"consensus.Staking":           &txFee{StakingTransctionType, amount.COIN.DivC(10)},
+		"consensus.Unstaking":         &txFee{UnstakingTransctionType, amount.COIN.DivC(10)},
 		"solidity.CreateContract":     &txFee{SolidityCreateContractType, amount.COIN.MulC(10)},
 		"solidity.CallContract":       &txFee{SolidityCallContractType, amount.COIN.DivC(10)},
 	}
@@ -98,10 +102,25 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Ev
 }
 
 func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *data.Eventer) (*data.ContextData, error) {
-	consensus.SetFormulatorPolicy(act.ChainCoord(), &consensus.FormulatorPolicy{
-		CreateFormulationAmount: amount.NewCoinAmount(200000, 0),
-		OmegaRequiredLockBlocks: 5184000,
-		SigmaRequiredLockBlocks: 5184000,
+	consensus.SetConsensusPolicy(act.ChainCoord(), &consensus.ConsensusPolicy{
+		RewardPerBlock:                amount.NewCoinAmount(0, 500000000000000000),
+		PayRewardEveryBlocks:          500,
+		FormulatorCreationLimitHeight: 1000,
+		AlphaFormulationAmount:        amount.NewCoinAmount(1000, 0),
+		AlphaEfficiency1000:           1000,
+		AlphaUnlockRequiredBlocks:     1000,
+		SigmaRequiredAlphaBlocks:      1000,
+		SigmaRequiredAlphaCount:       4,
+		SigmaEfficiency1000:           1000,
+		SigmaUnlockRequiredBlocks:     1000,
+		OmegaRequiredSigmaBlocks:      1000,
+		OmegaRequiredSigmaCount:       2,
+		OmegaEfficiency1000:           1000,
+		OmegaUnlockRequiredBlocks:     1000,
+		HyperFormulationAmount:        amount.NewCoinAmount(1000, 0),
+		HyperEfficiency1000:           1000,
+		HyperUnlockRequiredBlocks:     1000,
+		StakingEfficiency1000:         1000,
 	})
 
 	loader := data.NewEmptyLoader(act.ChainCoord(), act, tran, evt)
@@ -163,12 +182,16 @@ func addSingleAccount(loader data.Loader, ctd *data.ContextData, KeyHash common.
 	acc := a.(*account_def.SingleAccount)
 	acc.Address_ = addr
 	acc.Name_ = name
-	acc.Balance_ = amount.NewCoinAmount(10000000000, 0)
+	acc.Balance_ = amount.NewCoinAmount(2000000000, 0)
 	acc.KeyHash = KeyHash
 	ctd.CreatedAccountMap[acc.Address_] = acc
 }
 
 func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.PublicHash, addr common.Address, name string) {
+	policy, err := consensus.GetConsensusPolicy(loader.ChainCoord())
+	if err != nil {
+		panic(err)
+	}
 	a, err := loader.Accounter().NewByTypeName("consensus.FormulationAccount")
 	if err != nil {
 		panic(err)
@@ -177,7 +200,34 @@ func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.Pub
 	acc.Address_ = addr
 	acc.Name_ = name
 	acc.Balance_ = amount.NewCoinAmount(0, 0)
+	acc.FormulationType = consensus.AlphaFormulatorType
+	acc.Amount = policy.AlphaFormulationAmount
 	acc.KeyHash = KeyHash
+	ctd.CreatedAccountMap[acc.Address_] = acc
+}
+
+func addHyperFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.PublicHash, addr common.Address, name string) {
+	policy, err := consensus.GetConsensusPolicy(loader.ChainCoord())
+	if err != nil {
+		panic(err)
+	}
+	a, err := loader.Accounter().NewByTypeName("consensus.FormulationAccount")
+	if err != nil {
+		panic(err)
+	}
+	acc := a.(*consensus.FormulationAccount)
+	acc.Address_ = addr
+	acc.Name_ = name
+	acc.Balance_ = amount.NewCoinAmount(0, 0)
+	acc.FormulationType = consensus.HyperFormulatorType
+	acc.Amount = policy.HyperFormulationAmount
+	acc.KeyHash = KeyHash
+	acc.Policy = &consensus.HyperPolicy{
+		CommissionRatio1000: 100,
+		MinimumStaking:      amount.NewCoinAmount(0, 0),
+		MaximumStaking:      amount.NewCoinAmount(0, 0),
+	}
+	acc.StakingAmount = amount.NewCoinAmount(0, 0)
 	ctd.CreatedAccountMap[acc.Address_] = acc
 }
 
