@@ -117,7 +117,7 @@ func main() {
 	}
 	cm.Add("kernel.Store", ks)
 
-	rd := &reward.TestNetRewarder{}
+	rd := reward.NewTestNetRewarder()
 	kn, err := kernel.NewKernel(&kernel.Config{
 		ChainCoord:              GenCoord,
 		ObserverKeyMap:          ObserverKeyBoolMap,
