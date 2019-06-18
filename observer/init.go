@@ -36,10 +36,13 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Ev
 		DepositTransctionType     = transaction.Type(38)
 		OpenAccountTransctionType = transaction.Type(41)
 		// Formulation Transactions
-		CreateFormulationTransctionType = transaction.Type(60)
-		RevokeFormulationTransctionType = transaction.Type(61)
-		StakingTransctionType           = transaction.Type(62)
-		UnstakingTransctionType         = transaction.Type(63)
+		CreateAlphaTransctionType = transaction.Type(60)
+		CreateSigmaTransctionType = transaction.Type(61)
+		CreateOmegaTransctionType = transaction.Type(62)
+		CreateHyperTransctionType = transaction.Type(63)
+		RevokeTransctionType      = transaction.Type(64)
+		StakingTransctionType     = transaction.Type(68)
+		UnstakingTransctionType   = transaction.Type(69)
 		// Solidity Transactions
 		SolidityCreateContractType = transaction.Type(70)
 		SolidityCallContractType   = transaction.Type(71)
@@ -71,8 +74,11 @@ func initChainComponent(act *data.Accounter, tran *data.Transactor, evt *data.Ev
 		"fleta.Assign":                &txFee{AssignTransctionType, amount.COIN.DivC(2)},
 		"fleta.Deposit":               &txFee{DepositTransctionType, amount.COIN.DivC(2)},
 		"fleta.OpenAccount":           &txFee{OpenAccountTransctionType, amount.COIN.MulC(10)},
-		"consensus.CreateFormulation": &txFee{CreateFormulationTransctionType, amount.COIN.DivC(10)},
-		"consensus.RevokeFormulation": &txFee{RevokeFormulationTransctionType, amount.COIN.DivC(10)},
+		"consensus.CreateAlpha":       &txFee{CreateAlphaTransctionType, amount.COIN.DivC(10)},
+		"consensus.CreateSigma":       &txFee{CreateSigmaTransctionType, amount.COIN.DivC(10)},
+		"consensus.CreateOmega":       &txFee{CreateOmegaTransctionType, amount.COIN.DivC(10)},
+		"consensus.CreateHyper":       &txFee{CreateHyperTransctionType, amount.COIN.DivC(10)},
+		"consensus.Revoke":            &txFee{RevokeTransctionType, amount.COIN.DivC(10)},
 		"consensus.Staking":           &txFee{StakingTransctionType, amount.COIN.DivC(10)},
 		"consensus.Unstaking":         &txFee{UnstakingTransctionType, amount.COIN.DivC(10)},
 		"solidity.CreateContract":     &txFee{SolidityCreateContractType, amount.COIN.MulC(10)},
@@ -106,7 +112,7 @@ func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *dat
 		RewardPerBlock:                amount.NewCoinAmount(0, 500000000000000000),
 		PayRewardEveryBlocks:          500,
 		FormulatorCreationLimitHeight: 1000,
-		AlphaFormulationAmount:        amount.NewCoinAmount(1000, 0),
+		AlphaCreationAmount:           amount.NewCoinAmount(1000, 0),
 		AlphaEfficiency1000:           1000,
 		AlphaUnlockRequiredBlocks:     1000,
 		SigmaRequiredAlphaBlocks:      1000,
@@ -117,7 +123,7 @@ func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *dat
 		OmegaRequiredSigmaCount:       2,
 		OmegaEfficiency1000:           1000,
 		OmegaUnlockRequiredBlocks:     1000,
-		HyperFormulationAmount:        amount.NewCoinAmount(1000, 0),
+		HyperCreationAmount:           amount.NewCoinAmount(1000, 0),
 		HyperEfficiency1000:           1000,
 		HyperUnlockRequiredBlocks:     1000,
 		StakingEfficiency1000:         1000,
@@ -201,7 +207,7 @@ func addFormulator(loader data.Loader, ctd *data.ContextData, KeyHash common.Pub
 	acc.Name_ = name
 	acc.Balance_ = amount.NewCoinAmount(0, 0)
 	acc.FormulationType = consensus.AlphaFormulatorType
-	acc.Amount = policy.AlphaFormulationAmount
+	acc.Amount = policy.AlphaCreationAmount
 	acc.KeyHash = KeyHash
 	ctd.CreatedAccountMap[acc.Address_] = acc
 }
@@ -220,7 +226,7 @@ func addHyperFormulator(loader data.Loader, ctd *data.ContextData, KeyHash commo
 	acc.Name_ = name
 	acc.Balance_ = amount.NewCoinAmount(0, 0)
 	acc.FormulationType = consensus.HyperFormulatorType
-	acc.Amount = policy.HyperFormulationAmount
+	acc.Amount = policy.HyperCreationAmount
 	acc.KeyHash = KeyHash
 	acc.Policy = &consensus.HyperPolicy{
 		CommissionRatio1000: 100,
