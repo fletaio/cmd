@@ -173,6 +173,8 @@ func initGenesisContextData(act *data.Accounter, tran *data.Transactor, evt *dat
 	for i := 0; i < 36; i++ {
 		acg.Generate()
 	}
+	tempAddr := common.NewAddress(acg.Generate(), 0) //2QKnCkZxVV
+	addSingleAccount(loader, ctd, common.MustParsePublicHash("41Xu1uAED3a28bo5VkbgrATCVmLXvxVwi6jQ7NkuA2p"), tempAddr, "testcreatoraccount")
 	for i := 0; i < 20000; i++ {
 		addr := common.NewAddress(acg.Generate(), 0)
 		addSingleAccount(loader, ctd, common.MustParsePublicHash("3Zmc4bGPP7TuMYxZZdUhA9kVjukdsE2S8Xpbj4Laovv"), addr, "testaccount"+strconv.Itoa(i))
